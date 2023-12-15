@@ -1,0 +1,24 @@
+{
+	"name": "com.jmayberry.spawner",
+	"displayName": "Spawner",
+	"version": "1.0.1",
+	"unity": "2021.1",
+	"description": "Some generic classes that help pool objects and spawn them.",
+	"keywords": [
+		"physics",
+		"utility"
+	],
+	"dependencies": {
+	},
+	"author": {
+		"name": "jmayberry",
+		"email": "joshua.mayberry1991@gmail.com"
+	},
+	"samples": [
+		{
+			"displayName": "Example Use",
+			"description": "Shows how to use it",
+			"path": "Samples~/Example Use"
+		}
+	]
+}

@@ -1,0 +1,19 @@
+{
+    "name": "jmayberry.Spawner.Editor",
+    "rootNamespace": "jmayberry.Spawner.Editor",
+    "references": [
+        "jmayberry.Spawner",
+        "jmayberry.CustomAttributes"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
