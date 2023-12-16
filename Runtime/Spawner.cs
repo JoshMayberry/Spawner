@@ -104,7 +104,7 @@ namespace jmayberry.Spawner {
 				spawnling.transform.rotation = rotation;
 
 				if ((parentObject != null) && (spawnling.transform.parent != parentObject.transform)) {
-					spawnling.transform.parent = parentObject.transform;
+					spawnling.transform.SetParent(parentObject.transform);
 				}
 			}
 			else if (parentObject != null) {
