@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System.Collections;
 
 namespace jmayberry.Spawner {
 
@@ -16,8 +17,8 @@ namespace jmayberry.Spawner {
 		void OnDespawn(object spawner);
 	}
 
-	public class UnitySpawner<T> where T : Component, ISpawnable {
-		[SerializeField] private T prefabDefault;
+	public class UnitySpawner<T> : IEnumerable<T> where T : Component, ISpawnable {
+        [SerializeField] private T prefabDefault;
 
 		private List<T> activeList = new List<T>();
 		private List<T> inactiveList = new List<T>();
@@ -134,10 +135,20 @@ namespace jmayberry.Spawner {
 			}
 
 			this.activeList = new List<T>();
-		}
-	}
+        }
 
-	public class CodeSpawner<T> where T : ISpawnable, new() {
+        public IEnumerator<T> GetEnumerator() {
+            foreach (T spawnling in this.activeList) {
+                yield return spawnling;
+            }
+        }
+
+        IEnumerator IEnumerable.GetEnumerator() {
+            return GetEnumerator();
+        }
+    }
+
+	public class CodeSpawner<T> : IEnumerable<T> where T : ISpawnable, new() {
 		private List<T> activeList = new List<T>();
 		private List<T> inactiveList = new List<T>();
 
@@ -177,6 +188,16 @@ namespace jmayberry.Spawner {
 			}
 
 			this.activeList = new List<T>();
-		}
-	}
+        }
+
+        public IEnumerator<T> GetEnumerator() {
+            foreach (T spawnling in this.activeList) {
+                yield return spawnling;
+            }
+        }
+
+        IEnumerator IEnumerable.GetEnumerator() {
+            return GetEnumerator();
+        }
+    }
 }
