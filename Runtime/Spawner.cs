@@ -33,7 +33,7 @@ namespace jmayberry.Spawner {
 		public void Initialize(List<T> existingList) {
 			foreach (T spawnling in existingList) {
 				spawnling.gameObject.SetActive(true);
-				activeList.Add(spawnling);
+				this.activeList.Add(spawnling);
 				spawnling.OnSpawn(this);
 			}
 		}
@@ -97,9 +97,9 @@ namespace jmayberry.Spawner {
 		public T Spawn(T prefab, Vector3 position, Quaternion rotation, Transform parentObject) {
 			T spawnling;
 
-			if (inactiveList.Count > 0) {
-				spawnling = inactiveList[inactiveList.Count - 1];
-				inactiveList.RemoveAt(inactiveList.Count - 1);
+			if (this.inactiveList.Count > 0) {
+				spawnling = this.inactiveList[this.inactiveList.Count - 1];
+				this.inactiveList.RemoveAt(this.inactiveList.Count - 1);
 				spawnling.transform.position = position;
 				spawnling.transform.rotation = rotation;
 
@@ -115,26 +115,56 @@ namespace jmayberry.Spawner {
 			}
 
 			spawnling.gameObject.SetActive(true);
-			activeList.Add(spawnling);
+			this.activeList.Add(spawnling);
 			spawnling.OnSpawn(this);
 			return spawnling;
 		}
 
 		public void Despawn(T spawnling) {
-			activeList.Remove(spawnling);
-			inactiveList.Add(spawnling);
+			this.activeList.Remove(spawnling);
+			this.inactiveList.Add(spawnling);
 			spawnling.OnDespawn(this);
 			spawnling.gameObject.SetActive(false);
 		}
 
 		public void DespawnAll() {
-			foreach (T spawnling in activeList) {
-				inactiveList.Add(spawnling);
+			foreach (T spawnling in this.activeList) {
+				this.inactiveList.Add(spawnling);
 				spawnling.OnDespawn(this);
 				spawnling.gameObject.SetActive(false);
 			}
 
 			this.activeList = new List<T>();
+        }
+
+        public bool ShouldBeActive(T spawnling) {
+            if (this.activeList.Contains(spawnling)) {
+                return false;
+            }
+
+            if (this.inactiveList.Contains(spawnling)) {
+                this.inactiveList.Remove(spawnling);
+            }
+
+            spawnling.gameObject.SetActive(true);
+            this.activeList.Add(spawnling);
+            spawnling.OnSpawn(this);
+            return true;
+        }
+
+        public bool ShouldBeInactive(T spawnling) {
+            if (this.inactiveList.Contains(spawnling)) {
+                return false;
+            }
+
+            if (this.activeList.Contains(spawnling)) {
+                this.activeList.Remove(spawnling);
+            }
+
+            this.inactiveList.Add(spawnling);
+            spawnling.OnDespawn(this);
+            spawnling.gameObject.SetActive(true);
+            return true;
         }
 
         public IEnumerator<T> GetEnumerator() {
@@ -188,6 +218,34 @@ namespace jmayberry.Spawner {
 			}
 
 			this.activeList = new List<T>();
+        }
+
+        public bool ShouldBeActive(T spawnling) {
+            if (this.activeList.Contains(spawnling)) {
+                return false;
+            }
+
+            if (this.inactiveList.Contains(spawnling)) {
+                this.inactiveList.Remove(spawnling);
+            }
+
+            this.activeList.Add(spawnling);
+            spawnling.OnSpawn(this);
+            return true;
+        }
+
+        public bool ShouldBeInactive(T spawnling) {
+            if (this.inactiveList.Contains(spawnling)) {
+                return false;
+            }
+
+            if (this.activeList.Contains(spawnling)) {
+                this.activeList.Remove(spawnling);
+            }
+
+            this.inactiveList.Add(spawnling);
+            spawnling.OnDespawn(this);
+            return true;
         }
 
         public IEnumerator<T> GetEnumerator() {
