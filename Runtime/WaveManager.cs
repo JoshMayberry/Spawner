@@ -24,6 +24,7 @@ namespace jmayberry.Spawner {
 		public U[] waves;
 		public float timeBetweenWaves;
 		public Transform spawnParent;
+		public bool usePooling = false;
 
 		[Header("Internal")]
 		public UnitySpawner<T> spawner;
@@ -49,8 +50,9 @@ namespace jmayberry.Spawner {
 
 		void Start() {
 			this.spawner = new UnitySpawner<T>();
+			this.spawner.usePooling = usePooling;
 
-			if (this.EventWaveStart == null) {
+            if (this.EventWaveStart == null) {
 				this.EventWaveStart = new UnityEvent<int>();
 			}
 

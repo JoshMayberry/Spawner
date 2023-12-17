@@ -18,7 +18,8 @@ namespace jmayberry.Spawner {
 	}
 
 	public class UnitySpawner<T> : IEnumerable<T> where T : Component, ISpawnable {
-        [SerializeField] private T prefabDefault;
+		[SerializeField] private T prefabDefault;
+		public bool usePooling = true;
 
 		private List<T> activeList = new List<T>();
 		private List<T> inactiveList = new List<T>();
@@ -32,9 +33,7 @@ namespace jmayberry.Spawner {
 
 		public void Initialize(List<T> existingList) {
 			foreach (T spawnling in existingList) {
-				spawnling.gameObject.SetActive(true);
-				this.activeList.Add(spawnling);
-				spawnling.OnSpawn(this);
+                this.moveToActiveList(spawnling);
 			}
 		}
 
@@ -97,7 +96,7 @@ namespace jmayberry.Spawner {
 		public T Spawn(T prefab, Vector3 position, Quaternion rotation, Transform parentObject) {
 			T spawnling;
 
-			if (this.inactiveList.Count > 0) {
+			if (this.usePooling && (this.inactiveList.Count > 0)) {
 				spawnling = this.inactiveList[this.inactiveList.Count - 1];
 				this.inactiveList.RemoveAt(this.inactiveList.Count - 1);
 				spawnling.transform.position = position;
@@ -114,85 +113,94 @@ namespace jmayberry.Spawner {
 				spawnling = GameObject.Instantiate(prefab, position, rotation);
 			}
 
-			spawnling.gameObject.SetActive(true);
-			this.activeList.Add(spawnling);
-			spawnling.OnSpawn(this);
+			this.moveToActiveList(spawnling);
 			return spawnling;
 		}
 
 		public void Despawn(T spawnling) {
 			this.activeList.Remove(spawnling);
-			this.inactiveList.Add(spawnling);
-			spawnling.OnDespawn(this);
-			spawnling.gameObject.SetActive(false);
+			this.moveToInactiveList(spawnling);
 		}
 
 		public void DespawnAll() {
 			foreach (T spawnling in this.activeList) {
-				this.inactiveList.Add(spawnling);
-				spawnling.OnDespawn(this);
-				spawnling.gameObject.SetActive(false);
+				this.moveToInactiveList(spawnling);
 			}
 
 			this.activeList = new List<T>();
-        }
+		}
 
-        public bool ShouldBeActive(T spawnling) {
-            if (this.activeList.Contains(spawnling)) {
-                return false;
-            }
+		public bool ShouldBeActive(T spawnling) {
+			if (this.activeList.Contains(spawnling)) {
+				return false;
+			}
 
-            if (this.inactiveList.Contains(spawnling)) {
-                this.inactiveList.Remove(spawnling);
-            }
+			if (this.inactiveList.Contains(spawnling)) {
+				this.inactiveList.Remove(spawnling);
+			}
 
+			this.moveToActiveList(spawnling);
+			return true;
+		}
+
+		public bool ShouldBeInactive(T spawnling) {
+			if (this.inactiveList.Contains(spawnling)) {
+				return false;
+			}
+
+			if (this.activeList.Contains(spawnling)) {
+				this.activeList.Remove(spawnling);
+			}
+
+			this.moveToInactiveList(spawnling);
+			return true;
+		}
+
+		public IEnumerator<T> GetEnumerator() {
+			foreach (T spawnling in this.activeList) {
+				yield return spawnling;
+			}
+		}
+
+		IEnumerator IEnumerable.GetEnumerator() {
+			return GetEnumerator();
+		}
+
+		private void moveToActiveList(T spawnling) {
             spawnling.gameObject.SetActive(true);
             this.activeList.Add(spawnling);
             spawnling.OnSpawn(this);
-            return true;
         }
 
-        public bool ShouldBeInactive(T spawnling) {
-            if (this.inactiveList.Contains(spawnling)) {
-                return false;
-            }
+		private void moveToInactiveList(T spawnling) {
+			if (this.usePooling) {
+				spawnling.OnDespawn(this);
+				this.inactiveList.Add(spawnling);
+                spawnling.gameObject.SetActive(false);
+				return;
+			}
 
-            if (this.activeList.Contains(spawnling)) {
-                this.activeList.Remove(spawnling);
-            }
-
-            this.inactiveList.Add(spawnling);
-            spawnling.OnDespawn(this);
-            spawnling.gameObject.SetActive(true);
-            return true;
-        }
-
-        public IEnumerator<T> GetEnumerator() {
-            foreach (T spawnling in this.activeList) {
-                yield return spawnling;
-            }
-        }
-
-        IEnumerator IEnumerable.GetEnumerator() {
-            return GetEnumerator();
-        }
-    }
+			spawnling.OnDespawn(this);
+			spawnling.gameObject.SetActive(false);
+			Object.Destroy(spawnling.gameObject);
+		}
+	}
 
 	public class CodeSpawner<T> : IEnumerable<T> where T : ISpawnable, new() {
-		private List<T> activeList = new List<T>();
+		public bool usePooling = true;
+        private List<T> activeList = new List<T>();
 		private List<T> inactiveList = new List<T>();
 
 		public void Initialize(List<T> existingList) {
 			foreach (T spawnling in existingList) {
-				activeList.Add(spawnling);
-				spawnling.OnSpawn(this);
-			}
+                this.moveToActiveList(spawnling);
+            }
 		}
 
 		public T Spawn() {
 			T spawnling;
 
-			if (inactiveList.Count > 0) {
+			if (usePooling && (inactiveList.Count > 0)) {
 				spawnling = inactiveList[inactiveList.Count - 1];
 				inactiveList.RemoveAt(inactiveList.Count - 1);
 			}
@@ -200,62 +208,73 @@ namespace jmayberry.Spawner {
 				spawnling = new T();
 			}
 
-			activeList.Add(spawnling);
-			spawnling.OnSpawn(this);
-			return spawnling;
+            this.moveToActiveList(spawnling);
+            return spawnling;
 		}
 
 		public void Despawn(T spawnling) {
 			activeList.Remove(spawnling);
-			inactiveList.Add(spawnling);
-			spawnling.OnDespawn(this);
-		}
+            this.moveToInactiveList(spawnling);
+        }
 
 		public void DespawnAll() {
 			foreach (T spawnling in activeList) {
-				inactiveList.Add(spawnling);
-				spawnling.OnDespawn(this);
-			}
+                this.moveToInactiveList(spawnling);
+            }
 
 			this.activeList = new List<T>();
+		}
+
+		public bool ShouldBeActive(T spawnling) {
+			if (this.activeList.Contains(spawnling)) {
+				return false;
+			}
+
+			if (this.inactiveList.Contains(spawnling)) {
+				this.inactiveList.Remove(spawnling);
+			}
+
+            this.moveToActiveList(spawnling);
+            return true;
+		}
+
+		public bool ShouldBeInactive(T spawnling) {
+			if (this.inactiveList.Contains(spawnling)) {
+				return false;
+			}
+
+			if (this.activeList.Contains(spawnling)) {
+				this.activeList.Remove(spawnling);
+			}
+
+			this.moveToInactiveList(spawnling);
+			return true;
+		}
+
+		public IEnumerator<T> GetEnumerator() {
+			foreach (T spawnling in this.activeList) {
+				yield return spawnling;
+			}
+		}
+
+		IEnumerator IEnumerable.GetEnumerator() {
+			return GetEnumerator();
         }
 
-        public bool ShouldBeActive(T spawnling) {
-            if (this.activeList.Contains(spawnling)) {
-                return false;
-            }
-
-            if (this.inactiveList.Contains(spawnling)) {
-                this.inactiveList.Remove(spawnling);
-            }
-
+        private void moveToActiveList(T spawnling) {
             this.activeList.Add(spawnling);
             spawnling.OnSpawn(this);
-            return true;
         }
 
-        public bool ShouldBeInactive(T spawnling) {
-            if (this.inactiveList.Contains(spawnling)) {
-                return false;
+        private void moveToInactiveList(T spawnling) {
+            if (this.usePooling) {
+                spawnling.OnDespawn(this);
+                this.inactiveList.Add(spawnling);
+                return;
             }
 
-            if (this.activeList.Contains(spawnling)) {
-                this.activeList.Remove(spawnling);
-            }
-
-            this.inactiveList.Add(spawnling);
             spawnling.OnDespawn(this);
-            return true;
-        }
-
-        public IEnumerator<T> GetEnumerator() {
-            foreach (T spawnling in this.activeList) {
-                yield return spawnling;
-            }
-        }
-
-        IEnumerator IEnumerable.GetEnumerator() {
-            return GetEnumerator();
+			// It will be garbage collected?
         }
     }
 }
