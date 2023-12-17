@@ -2,7 +2,9 @@
     "name": "jmayberry.Spawner",
     "rootNamespace": "jmayberry.Spawner",
     "references": [
-        "jmayberry.CustomAttributes"
+        "jmayberry.CustomAttributes",
+        "Unity.Splines",
+        "Unity.Mathematics"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
