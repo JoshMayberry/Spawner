@@ -232,7 +232,8 @@ namespace jmayberry.Spawner {
 
 		public abstract bool OnSpawn(T spawnling, U wave, int waveIndex, int spawnlingIndex);
 
-		public virtual void OnDrawGizmosSelected() {
+#if UNITY_EDITOR
+        public virtual void OnDrawGizmosSelected() {
 			if (!this.enabled) {
 				return;
 			}
@@ -270,5 +271,6 @@ namespace jmayberry.Spawner {
 					break;
 			}
 		}
-	}
+#endif
+    }
 }
