@@ -8,26 +8,26 @@ using UnityEngine.Splines;
 using Unity.Mathematics;
 
 namespace jmayberry.Spawner {
-	public interface IWave<T> where T : MonoBehaviour, ISpawnable {
+	public interface IWave<SpawnClass> where SpawnClass : MonoBehaviour, ISpawnable {
 		int count { get; set; }
-		T[] possible { get; set; }
+		SpawnClass[] possible { get; set; }
 		float timeBetweenSpawns { get; set; }
-	}
+    }
 
-	public enum SpawnLocationType { WithinCircle, WithinBox, WithinCollider, FromList, AlongSpline, OnMesh }
+    public enum SpawnLocationType { WithinCircle, WithinBox, WithinCollider, FromList, AlongSpline, OnMesh }
 
-	public abstract class WaveManagerBase<T, U> : MonoBehaviour
-		where T : MonoBehaviour, ISpawnable
-		where U : IWave<T>
+	public abstract class WaveManagerBase<SpawnClass, WaveClass> : MonoBehaviour
+		where SpawnClass : MonoBehaviour, ISpawnable
+		where WaveClass : IWave<SpawnClass>
 	{
 		[Header("Setup")]
-		public U[] waves;
+		public WaveClass[] waves;
 		public float timeBetweenWaves;
 		public Transform spawnParent;
 		public bool usePooling = false;
 
 		[Header("Internal")]
-		public UnitySpawner<T> spawner;
+		public UnitySpawner<SpawnClass> spawner;
 		public bool is2D = true;
 		public SpawnLocationType spawnLocationType = SpawnLocationType.WithinCircle;
 		public float spawnRadius;
@@ -38,7 +38,7 @@ namespace jmayberry.Spawner {
 		public Collider2D spawnCollider;
 
 		[Header("Debug")]
-		[Readonly] public U currentWave;
+		[Readonly] public WaveClass currentWave;
 		[Readonly] public int currentWaveIndex;
 
 		[Header("GUI")]
@@ -49,7 +49,7 @@ namespace jmayberry.Spawner {
 		bool wavesFinished = false;
 
 		void Start() {
-			this.spawner = new UnitySpawner<T>();
+			this.spawner = new UnitySpawner<SpawnClass>();
 			this.spawner.usePooling = usePooling;
 
             if (this.EventWaveStart == null) {
@@ -72,7 +72,7 @@ namespace jmayberry.Spawner {
 				return;
 			}
 
-			T[] spawnlingsInScene = FindObjectsByType<T>(FindObjectsSortMode.None);
+			SpawnClass[] spawnlingsInScene = FindObjectsByType<SpawnClass>(FindObjectsSortMode.None);
 			if (spawnlingsInScene.Length <= 0) {
 				this.EventWavesOver.Invoke();
 				this.wavesFinished = false;
@@ -128,10 +128,10 @@ namespace jmayberry.Spawner {
 		}
 
 		private bool DoSpawn(int i, int j) {
-			T randomPrefab = this.currentWave.possible[UnityEngine.Random.Range(0, this.currentWave.possible.Length)];
+			SpawnClass randomPrefab = this.currentWave.possible[UnityEngine.Random.Range(0, this.currentWave.possible.Length)];
             Vector3 randomSpawnPoint = this.GetSpawnLocation();
 
-			T spawnling = this.spawner.Spawn(randomPrefab, randomSpawnPoint, this.spawnParent);
+			SpawnClass spawnling = this.spawner.Spawn(randomPrefab, randomSpawnPoint, this.spawnParent);
 			return this.OnSpawn(spawnling, this.currentWave, i, j);
 		}
 
@@ -230,7 +230,7 @@ namespace jmayberry.Spawner {
 			}
 		}
 
-		public abstract bool OnSpawn(T spawnling, U wave, int waveIndex, int spawnlingIndex);
+		public abstract bool OnSpawn(SpawnClass spawnling, WaveClass wave, int waveIndex, int spawnlingIndex);
 
 #if UNITY_EDITOR
         public virtual void OnDrawGizmosSelected() {

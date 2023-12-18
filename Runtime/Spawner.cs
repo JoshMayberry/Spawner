@@ -17,84 +17,84 @@ namespace jmayberry.Spawner {
 		void OnDespawn(object spawner);
 	}
 
-	public class UnitySpawner<T> : IEnumerable<T> where T : Component, ISpawnable {
-		[SerializeField] private T prefabDefault;
+	public class UnitySpawner<SpawnClass> : IEnumerable<SpawnClass> where SpawnClass : Component, ISpawnable {
+		[SerializeField] private SpawnClass prefabDefault;
 		public bool usePooling = true;
 
-		private List<T> activeList = new List<T>();
-		private List<T> inactiveList = new List<T>();
+		private List<SpawnClass> activeList = new List<SpawnClass>();
+		private List<SpawnClass> inactiveList = new List<SpawnClass>();
 
 		public UnitySpawner() {
 		}
 
-		public UnitySpawner(T prefab) {
+		public UnitySpawner(SpawnClass prefab) {
 			this.prefabDefault = prefab;
 		}
 
-		public void Initialize(List<T> existingList) {
-			foreach (T spawnling in existingList) {
+		public void Initialize(List<SpawnClass> existingList) {
+			foreach (SpawnClass spawnling in existingList) {
                 this.moveToActiveList(spawnling);
 			}
 		}
 
-		public void SetPrefabDefault(T prefabDefault) {
+		public void SetPrefabDefault(SpawnClass prefabDefault) {
 			this.prefabDefault= prefabDefault;
 		}
 
-		public T Spawn() {
+		public SpawnClass Spawn() {
 			return this.Spawn(this.prefabDefault, Vector3.zero, Quaternion.identity, null);
 		}
 
-		public T Spawn(Transform transform) {
+		public SpawnClass Spawn(Transform transform) {
 			return this.Spawn(this.prefabDefault, transform.position, transform.rotation, null);
 		}
 
-		public T Spawn(Transform transform, Transform parentObject) {
+		public SpawnClass Spawn(Transform transform, Transform parentObject) {
 			return this.Spawn(this.prefabDefault, transform.position, transform.rotation, parentObject);
 		}
 
-		public T Spawn(Vector3 position) {
+		public SpawnClass Spawn(Vector3 position) {
 			return this.Spawn(this.prefabDefault, position, Quaternion.identity, null);
 		}
 
-		public T Spawn(Vector3 position, Transform parentObject) {
+		public SpawnClass Spawn(Vector3 position, Transform parentObject) {
 			return this.Spawn(this.prefabDefault, position, Quaternion.identity, parentObject);
 		}
 
-		public T Spawn(Vector3 position, Quaternion rotation) {
+		public SpawnClass Spawn(Vector3 position, Quaternion rotation) {
 			return this.Spawn(this.prefabDefault, position, rotation, null);
 		}
 
-		public T Spawn(Vector3 position, Quaternion rotation, Transform parentObject) {
+		public SpawnClass Spawn(Vector3 position, Quaternion rotation, Transform parentObject) {
 			return this.Spawn(this.prefabDefault, position, rotation, parentObject);
 		}
 
-		public T Spawn(T prefab) {
+		public SpawnClass Spawn(SpawnClass prefab) {
 			return this.Spawn(prefab, Vector3.zero, Quaternion.identity, null);
 		}
 
-		public T Spawn(T prefab, Transform transform) {
+		public SpawnClass Spawn(SpawnClass prefab, Transform transform) {
 			return this.Spawn(prefab, transform.position, transform.rotation, null);
 		}
 
-		public T Spawn(T prefab, Transform transform, Transform parentObject) {
+		public SpawnClass Spawn(SpawnClass prefab, Transform transform, Transform parentObject) {
 			return this.Spawn(prefab, transform.position, transform.rotation, parentObject);
 		}
 
-		public T Spawn(T prefab, Vector3 position) {
+		public SpawnClass Spawn(SpawnClass prefab, Vector3 position) {
 			return this.Spawn(prefab, position, Quaternion.identity, null);
 		}
 
-		public T Spawn(T prefab, Vector3 position, Transform parentObject) {
+		public SpawnClass Spawn(SpawnClass prefab, Vector3 position, Transform parentObject) {
 			return this.Spawn(prefab, position, Quaternion.identity, parentObject);
 		}
 
-		public T Spawn(T prefab, Vector3 position, Quaternion rotation) {
+		public SpawnClass Spawn(SpawnClass prefab, Vector3 position, Quaternion rotation) {
 			return this.Spawn(prefab, position, rotation, null);
 		}
 
-		public T Spawn(T prefab, Vector3 position, Quaternion rotation, Transform parentObject) {
-			T spawnling;
+		public SpawnClass Spawn(SpawnClass prefab, Vector3 position, Quaternion rotation, Transform parentObject) {
+			SpawnClass spawnling;
 
 			if (this.usePooling && (this.inactiveList.Count > 0)) {
 				spawnling = this.inactiveList[this.inactiveList.Count - 1];
@@ -117,20 +117,20 @@ namespace jmayberry.Spawner {
 			return spawnling;
 		}
 
-		public void Despawn(T spawnling) {
+		public void Despawn(SpawnClass spawnling) {
 			this.activeList.Remove(spawnling);
 			this.moveToInactiveList(spawnling);
 		}
 
 		public void DespawnAll() {
-			foreach (T spawnling in this.activeList) {
+			foreach (SpawnClass spawnling in this.activeList) {
 				this.moveToInactiveList(spawnling);
 			}
 
-			this.activeList = new List<T>();
+			this.activeList = new List<SpawnClass>();
 		}
 
-		public bool ShouldBeActive(T spawnling) {
+		public bool ShouldBeActive(SpawnClass spawnling) {
 			if (this.activeList.Contains(spawnling)) {
 				return false;
 			}
@@ -143,7 +143,7 @@ namespace jmayberry.Spawner {
 			return true;
 		}
 
-		public bool ShouldBeInactive(T spawnling) {
+		public bool ShouldBeInactive(SpawnClass spawnling) {
 			if (this.inactiveList.Contains(spawnling)) {
 				return false;
 			}
@@ -156,8 +156,8 @@ namespace jmayberry.Spawner {
 			return true;
 		}
 
-		public IEnumerator<T> GetEnumerator() {
-			foreach (T spawnling in this.activeList) {
+		public IEnumerator<SpawnClass> GetEnumerator() {
+			foreach (SpawnClass spawnling in this.activeList) {
 				yield return spawnling;
 			}
 		}
@@ -166,13 +166,13 @@ namespace jmayberry.Spawner {
 			return GetEnumerator();
 		}
 
-		private void moveToActiveList(T spawnling) {
+		private void moveToActiveList(SpawnClass spawnling) {
             spawnling.gameObject.SetActive(true);
             this.activeList.Add(spawnling);
             spawnling.OnSpawn(this);
         }
 
-		private void moveToInactiveList(T spawnling) {
+		private void moveToInactiveList(SpawnClass spawnling) {
 			if (this.usePooling) {
 				spawnling.OnDespawn(this);
 				this.inactiveList.Add(spawnling);
@@ -186,46 +186,46 @@ namespace jmayberry.Spawner {
 		}
 	}
 
-	public class CodeSpawner<T> : IEnumerable<T> where T : ISpawnable, new() {
+	public class CodeSpawner<SpawnClass> : IEnumerable<SpawnClass> where SpawnClass : ISpawnable, new() {
 		public bool usePooling = true;
-        private List<T> activeList = new List<T>();
-		private List<T> inactiveList = new List<T>();
+        private List<SpawnClass> activeList = new List<SpawnClass>();
+		private List<SpawnClass> inactiveList = new List<SpawnClass>();
 
-		public void Initialize(List<T> existingList) {
-			foreach (T spawnling in existingList) {
+		public void Initialize(List<SpawnClass> existingList) {
+			foreach (SpawnClass spawnling in existingList) {
                 this.moveToActiveList(spawnling);
             }
 		}
 
-		public T Spawn() {
-			T spawnling;
+		public SpawnClass Spawn() {
+            SpawnClass spawnling;
 
 			if (usePooling && (inactiveList.Count > 0)) {
 				spawnling = inactiveList[inactiveList.Count - 1];
 				inactiveList.RemoveAt(inactiveList.Count - 1);
 			}
 			else {
-				spawnling = new T();
+				spawnling = new SpawnClass();
 			}
 
             this.moveToActiveList(spawnling);
             return spawnling;
 		}
 
-		public void Despawn(T spawnling) {
+		public void Despawn(SpawnClass spawnling) {
 			activeList.Remove(spawnling);
             this.moveToInactiveList(spawnling);
         }
 
 		public void DespawnAll() {
-			foreach (T spawnling in activeList) {
+			foreach (SpawnClass spawnling in activeList) {
                 this.moveToInactiveList(spawnling);
             }
 
-			this.activeList = new List<T>();
+			this.activeList = new List<SpawnClass>();
 		}
 
-		public bool ShouldBeActive(T spawnling) {
+		public bool ShouldBeActive(SpawnClass spawnling) {
 			if (this.activeList.Contains(spawnling)) {
 				return false;
 			}
@@ -238,7 +238,7 @@ namespace jmayberry.Spawner {
             return true;
 		}
 
-		public bool ShouldBeInactive(T spawnling) {
+		public bool ShouldBeInactive(SpawnClass spawnling) {
 			if (this.inactiveList.Contains(spawnling)) {
 				return false;
 			}
@@ -251,8 +251,8 @@ namespace jmayberry.Spawner {
 			return true;
 		}
 
-		public IEnumerator<T> GetEnumerator() {
-			foreach (T spawnling in this.activeList) {
+		public IEnumerator<SpawnClass> GetEnumerator() {
+			foreach (SpawnClass spawnling in this.activeList) {
 				yield return spawnling;
 			}
 		}
@@ -261,12 +261,12 @@ namespace jmayberry.Spawner {
 			return GetEnumerator();
         }
 
-        private void moveToActiveList(T spawnling) {
+        private void moveToActiveList(SpawnClass spawnling) {
             this.activeList.Add(spawnling);
             spawnling.OnSpawn(this);
         }
 
-        private void moveToInactiveList(T spawnling) {
+        private void moveToInactiveList(SpawnClass spawnling) {
             if (this.usePooling) {
                 spawnling.OnDespawn(this);
                 this.inactiveList.Add(spawnling);
