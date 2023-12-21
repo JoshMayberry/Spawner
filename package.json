@@ -1,7 +1,7 @@
 {
 	"name": "com.jmayberry.spawner",
 	"displayName": "Spawner",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"unity": "2021.1",
 	"description": "Some generic classes that help pool objects and spawn them.",
 	"keywords": [
@@ -9,6 +9,7 @@
 		"utility"
 	],
 	"dependencies": {
+		"com.unity.splines": "2.3.0"
 	},
 	"author": {
 		"name": "jmayberry",

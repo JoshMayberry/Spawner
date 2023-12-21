@@ -19,7 +19,7 @@ namespace jmayberry.Spawner {
 
 	public class UnitySpawner<SpawnClass> : IEnumerable<SpawnClass> where SpawnClass : Component, ISpawnable {
 		[SerializeField] private SpawnClass prefabDefault;
-		public bool usePooling = true;
+        public bool usePooling = true;
 
 		private List<SpawnClass> activeList = new List<SpawnClass>();
 		private List<SpawnClass> inactiveList = new List<SpawnClass>();
