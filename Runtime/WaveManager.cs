@@ -46,9 +46,9 @@ namespace jmayberry.Spawner {
 		public UnityEvent<int> EventWaveEnd;
 		public UnityEvent EventWavesOver;
 
-		bool wavesFinished = false;
+        [Readonly] public bool wavesFinished = false;
 
-		void Start() {
+		public void Start() {
 			this.spawner = new UnitySpawner<SpawnClass>();
 			this.spawner.usePooling = usePooling;
 
@@ -80,7 +80,7 @@ namespace jmayberry.Spawner {
 			}
 		}
 
-		void StartWaves() {
+		internal void StartWaves() {
 			StartCoroutine(SpawnWaves());
 		}
 

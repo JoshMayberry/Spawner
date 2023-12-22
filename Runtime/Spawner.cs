@@ -20,8 +20,9 @@ namespace jmayberry.Spawner {
 	public class UnitySpawner<SpawnClass> : IEnumerable<SpawnClass> where SpawnClass : Component, ISpawnable {
 		[SerializeField] private SpawnClass prefabDefault;
         public bool usePooling = true;
+        public bool destroyUnpooled = true;
 
-		private List<SpawnClass> activeList = new List<SpawnClass>();
+        private List<SpawnClass> activeList = new List<SpawnClass>();
 		private List<SpawnClass> inactiveList = new List<SpawnClass>();
 
 		public UnitySpawner() {
@@ -182,9 +183,28 @@ namespace jmayberry.Spawner {
 
 			spawnling.OnDespawn(this);
 			spawnling.gameObject.SetActive(false);
-			Object.Destroy(spawnling.gameObject);
-		}
-	}
+
+			if (this.destroyUnpooled) {
+				Object.Destroy(spawnling.gameObject);
+			}
+        }
+
+        public bool IsActive(SpawnClass spawnling) {
+            return this.activeList.Contains(spawnling);
+        }
+
+        public bool IsInactive(SpawnClass spawnling) {
+            return this.inactiveList.Contains(spawnling);
+        }
+
+        public int ActiveCount() {
+            return this.activeList.Count;
+        }
+
+        public int InactiveCount() {
+            return this.inactiveList.Count;
+        }
+    }
 
 	public class CodeSpawner<SpawnClass> : IEnumerable<SpawnClass> where SpawnClass : ISpawnable, new() {
 		public bool usePooling = true;
@@ -274,7 +294,23 @@ namespace jmayberry.Spawner {
             }
 
             spawnling.OnDespawn(this);
-			// It will be garbage collected?
+            // It will be garbage collected?
+        }
+
+        public bool IsActive(SpawnClass spawnling) {
+            return this.activeList.Contains(spawnling);
+        }
+
+        public bool IsInactive(SpawnClass spawnling) {
+            return this.inactiveList.Contains(spawnling);
+        }
+
+        public int ActiveCount() {
+            return this.activeList.Count;
+        }
+
+        public int InactiveCount() {
+            return this.inactiveList.Count;
         }
     }
 }
