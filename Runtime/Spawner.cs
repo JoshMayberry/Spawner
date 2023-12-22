@@ -17,7 +17,13 @@ namespace jmayberry.Spawner {
 		void OnDespawn(object spawner);
 	}
 
-	public class UnitySpawner<SpawnClass> : IEnumerable<SpawnClass> where SpawnClass : Component, ISpawnable {
+	public interface ISpawner<SpawnClass> where SpawnClass : ISpawnable {
+        SpawnClass Spawn();
+
+		void Despawn(SpawnClass spawnling);
+    }
+
+	public class UnitySpawner<SpawnClass> : IEnumerable<SpawnClass>, ISpawner<SpawnClass> where SpawnClass : Component, ISpawnable {
 		[SerializeField] private SpawnClass prefabDefault;
         public bool usePooling = true;
         public bool destroyUnpooled = true;
@@ -206,7 +212,7 @@ namespace jmayberry.Spawner {
         }
     }
 
-	public class CodeSpawner<SpawnClass> : IEnumerable<SpawnClass> where SpawnClass : ISpawnable, new() {
+	public class CodeSpawner<SpawnClass> : IEnumerable<SpawnClass>, ISpawner<SpawnClass> where SpawnClass : ISpawnable, new() {
 		public bool usePooling = true;
         private List<SpawnClass> activeList = new List<SpawnClass>();
 		private List<SpawnClass> inactiveList = new List<SpawnClass>();
