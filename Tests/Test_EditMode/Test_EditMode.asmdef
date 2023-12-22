@@ -1,5 +1,5 @@
 {
-    "name": "Test_EditMode",
+    "name": "jmayberry.Spawner.Test.EditMode",
     "rootNamespace": "",
     "references": [
         "UnityEngine.TestRunner",

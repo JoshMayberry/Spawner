@@ -1,5 +1,5 @@
 {
-    "name": "Test_PlayMode",
+    "name": "jmayberry.Spawner.Test.PlayMode",
     "rootNamespace": "",
     "references": [
         "UnityEngine.TestRunner",
