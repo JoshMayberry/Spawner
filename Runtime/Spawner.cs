@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Collections;
+using System;
 
 namespace jmayberry.Spawner {
 
@@ -18,18 +19,22 @@ namespace jmayberry.Spawner {
 	}
 
 	public interface ISpawner<SpawnClass> where SpawnClass : ISpawnable {
-        SpawnClass Spawn();
+		SpawnClass Spawn();
 
 		void Despawn(SpawnClass spawnling);
-    }
+	}
 
 	public class UnitySpawner<SpawnClass> : IEnumerable<SpawnClass>, ISpawner<SpawnClass> where SpawnClass : Component, ISpawnable {
 		[SerializeField] private SpawnClass prefabDefault;
-        public bool usePooling = true;
-        public bool destroyUnpooled = true;
+		public bool usePooling = true;
+		public bool destroyUnpooled = true;
+		public int maxSpawns = 0; // If 0 will not cap the spawns
+		public int nextSpawnlingIndex = 0;
 
-        private List<SpawnClass> activeList = new List<SpawnClass>();
+		private List<SpawnClass> activeList = new List<SpawnClass>();
 		private List<SpawnClass> inactiveList = new List<SpawnClass>();
+
+		public delegate void SpawnConstructor(SpawnClass spawnling);
 
 		public UnitySpawner() {
 		}
@@ -40,7 +45,7 @@ namespace jmayberry.Spawner {
 
 		public void Initialize(List<SpawnClass> existingList) {
 			foreach (SpawnClass spawnling in existingList) {
-                this.moveToActiveList(spawnling);
+				this.moveToActiveList(spawnling);
 			}
 		}
 
@@ -49,59 +54,153 @@ namespace jmayberry.Spawner {
 		}
 
 		public SpawnClass Spawn() {
-			return this.Spawn(this.prefabDefault, Vector3.zero, Quaternion.identity, null);
+			return this.Spawn(this.prefabDefault, Vector3.zero, Quaternion.identity, null, null);
+		}
+
+		public SpawnClass Spawn(SpawnConstructor spawnConstructor) {
+			return this.Spawn(this.prefabDefault, Vector3.zero, Quaternion.identity, null, spawnConstructor);
 		}
 
 		public SpawnClass Spawn(Transform transform) {
-			return this.Spawn(this.prefabDefault, transform.position, transform.rotation, null);
+			if (transform == null) {
+				return this.Spawn(this.prefabDefault, Vector3.zero, Quaternion.identity, null, null);
+			}
+			return this.Spawn(this.prefabDefault, transform.position, transform.rotation, null, null);
+		}
+
+		public SpawnClass Spawn(Transform transform, SpawnConstructor spawnConstructor) {
+			if (transform == null) {
+				return this.Spawn(this.prefabDefault, Vector3.zero, Quaternion.identity, null, spawnConstructor);
+			}
+			return this.Spawn(this.prefabDefault, transform.position, transform.rotation, null, spawnConstructor);
 		}
 
 		public SpawnClass Spawn(Transform transform, Transform parentObject) {
-			return this.Spawn(this.prefabDefault, transform.position, transform.rotation, parentObject);
+			if (transform == null) {
+				return this.Spawn(this.prefabDefault, Vector3.zero, Quaternion.identity, parentObject, null);
+			}
+			return this.Spawn(this.prefabDefault, transform.position, transform.rotation, parentObject, null);
+		}
+		public SpawnClass Spawn(Transform transform, Transform parentObject, SpawnConstructor spawnConstructor) {
+			if (transform == null) {
+				return this.Spawn(this.prefabDefault, Vector3.zero, Quaternion.identity, parentObject, spawnConstructor);
+			}
+			return this.Spawn(this.prefabDefault, transform.position, transform.rotation, parentObject, spawnConstructor);
 		}
 
 		public SpawnClass Spawn(Vector3 position) {
-			return this.Spawn(this.prefabDefault, position, Quaternion.identity, null);
+			return this.Spawn(this.prefabDefault, position, Quaternion.identity, null, null);
+		}
+
+		public SpawnClass Spawn(Vector3 position, SpawnConstructor spawnConstructor) {
+			return this.Spawn(this.prefabDefault, position, Quaternion.identity, null, spawnConstructor);
 		}
 
 		public SpawnClass Spawn(Vector3 position, Transform parentObject) {
-			return this.Spawn(this.prefabDefault, position, Quaternion.identity, parentObject);
+			return this.Spawn(this.prefabDefault, position, Quaternion.identity, parentObject, null);
+		}
+
+		public SpawnClass Spawn(Vector3 position, Transform parentObject, SpawnConstructor spawnConstructor) {
+			return this.Spawn(this.prefabDefault, position, Quaternion.identity, parentObject, spawnConstructor);
 		}
 
 		public SpawnClass Spawn(Vector3 position, Quaternion rotation) {
-			return this.Spawn(this.prefabDefault, position, rotation, null);
+			return this.Spawn(this.prefabDefault, position, rotation, null, null);
+		}
+
+		public SpawnClass Spawn(Vector3 position, Quaternion rotation, SpawnConstructor spawnConstructor) {
+			return this.Spawn(this.prefabDefault, position, rotation, null, spawnConstructor);
 		}
 
 		public SpawnClass Spawn(Vector3 position, Quaternion rotation, Transform parentObject) {
-			return this.Spawn(this.prefabDefault, position, rotation, parentObject);
+			return this.Spawn(this.prefabDefault, position, rotation, parentObject, null);
+		}
+
+		public SpawnClass Spawn(Vector3 position, Quaternion rotation, Transform parentObject, SpawnConstructor spawnConstructor) {
+			return this.Spawn(this.prefabDefault, position, rotation, parentObject, spawnConstructor);
 		}
 
 		public SpawnClass Spawn(SpawnClass prefab) {
-			return this.Spawn(prefab, Vector3.zero, Quaternion.identity, null);
+			return this.Spawn(prefab, Vector3.zero, Quaternion.identity, null, null);
+		}
+
+		public SpawnClass Spawn(SpawnClass prefab, SpawnConstructor spawnConstructor) {
+			return this.Spawn(prefab, Vector3.zero, Quaternion.identity, null, spawnConstructor);
 		}
 
 		public SpawnClass Spawn(SpawnClass prefab, Transform transform) {
-			return this.Spawn(prefab, transform.position, transform.rotation, null);
+			if (transform == null) {
+				return this.Spawn(prefab, Vector3.zero, Quaternion.identity, null, null);
+			}
+			return this.Spawn(prefab, transform.position, transform.rotation, null, null);
+		}
+
+		public SpawnClass Spawn(SpawnClass prefab, Transform transform, SpawnConstructor spawnConstructor) {
+			if (transform == null) {
+				return this.Spawn(prefab, Vector3.zero, Quaternion.identity, null, spawnConstructor);
+			}
+			return this.Spawn(prefab, transform.position, transform.rotation, null, spawnConstructor);
 		}
 
 		public SpawnClass Spawn(SpawnClass prefab, Transform transform, Transform parentObject) {
-			return this.Spawn(prefab, transform.position, transform.rotation, parentObject);
+			if (transform == null) {
+				return this.Spawn(prefab, Vector3.zero, Quaternion.identity, parentObject, null);
+			}
+			return this.Spawn(prefab, transform.position, transform.rotation, parentObject, null);
+		}
+
+		public SpawnClass Spawn(SpawnClass prefab, Transform transform, Transform parentObject, SpawnConstructor spawnConstructor) {
+			if (transform == null) {
+				return this.Spawn(prefab, Vector3.zero, Quaternion.identity, parentObject, spawnConstructor);
+			}
+			return this.Spawn(prefab, transform.position, transform.rotation, parentObject, spawnConstructor);
 		}
 
 		public SpawnClass Spawn(SpawnClass prefab, Vector3 position) {
-			return this.Spawn(prefab, position, Quaternion.identity, null);
+			return this.Spawn(prefab, position, Quaternion.identity, null, null);
+		}
+
+		public SpawnClass Spawn(SpawnClass prefab, Vector3 position, SpawnConstructor spawnConstructor) {
+			return this.Spawn(prefab, position, Quaternion.identity, null, spawnConstructor);
 		}
 
 		public SpawnClass Spawn(SpawnClass prefab, Vector3 position, Transform parentObject) {
-			return this.Spawn(prefab, position, Quaternion.identity, parentObject);
+			return this.Spawn(prefab, position, Quaternion.identity, parentObject, null);
+		}
+
+		public SpawnClass Spawn(SpawnClass prefab, Vector3 position, Transform parentObject, SpawnConstructor spawnConstructor) {
+			return this.Spawn(prefab, position, Quaternion.identity, parentObject, spawnConstructor);
 		}
 
 		public SpawnClass Spawn(SpawnClass prefab, Vector3 position, Quaternion rotation) {
-			return this.Spawn(prefab, position, rotation, null);
+			return this.Spawn(prefab, position, rotation, null, null);
+		}
+
+		public SpawnClass Spawn(SpawnClass prefab, Vector3 position, Quaternion rotation, SpawnConstructor spawnConstructor) {
+			return this.Spawn(prefab, position, rotation, null, spawnConstructor);
 		}
 
 		public SpawnClass Spawn(SpawnClass prefab, Vector3 position, Quaternion rotation, Transform parentObject) {
-			SpawnClass spawnling;
+			return this.Spawn(prefab, position, rotation, parentObject, null);
+		}
+
+		public SpawnClass Spawn(SpawnClass prefab, Vector3 position, Quaternion rotation, Transform parentObject, SpawnConstructor spawnConstructor) {
+			SpawnClass spawnling = null;
+			if ((this.maxSpawns > 0) && (this.ActiveCount() >= this.maxSpawns)) {
+				return spawnling;
+			}
+
+			if (prefab == null) {
+				prefab = this.prefabDefault;
+			}
+
+			if (position == null) {
+				position = Vector3.zero;
+			}
+
+			if (rotation == null) {
+				rotation = Quaternion.identity;
+			}
 
 			if (this.usePooling && (this.inactiveList.Count > 0)) {
 				spawnling = this.inactiveList[this.inactiveList.Count - 1];
@@ -115,9 +214,15 @@ namespace jmayberry.Spawner {
 			}
 			else if (parentObject != null) {
 				spawnling = GameObject.Instantiate(prefab, position, rotation, parentObject);
+				if (spawnConstructor != null) {
+					spawnConstructor(spawnling);
+				}
 			}
 			else {
 				spawnling = GameObject.Instantiate(prefab, position, rotation);
+				if (spawnConstructor != null) {
+					spawnConstructor(spawnling);
+				}
 			}
 
 			this.moveToActiveList(spawnling);
@@ -174,16 +279,16 @@ namespace jmayberry.Spawner {
 		}
 
 		private void moveToActiveList(SpawnClass spawnling) {
-            spawnling.gameObject.SetActive(true);
-            this.activeList.Add(spawnling);
-            spawnling.OnSpawn(this);
-        }
+			spawnling.gameObject.SetActive(true);
+			this.activeList.Add(spawnling);
+			spawnling.OnSpawn(this);
+		}
 
 		private void moveToInactiveList(SpawnClass spawnling) {
 			if (this.usePooling) {
 				spawnling.OnDespawn(this);
 				this.inactiveList.Add(spawnling);
-                spawnling.gameObject.SetActive(false);
+				spawnling.gameObject.SetActive(false);
 				return;
 			}
 
@@ -191,40 +296,77 @@ namespace jmayberry.Spawner {
 			spawnling.gameObject.SetActive(false);
 
 			if (this.destroyUnpooled) {
-				Object.Destroy(spawnling.gameObject);
+				UnityEngine.Object.Destroy(spawnling.gameObject);
 			}
-        }
+		}
 
-        public bool IsActive(SpawnClass spawnling) {
-            return this.activeList.Contains(spawnling);
-        }
+		public bool IsActive(SpawnClass spawnling) {
+			return this.activeList.Contains(spawnling);
+		}
 
-        public bool IsInactive(SpawnClass spawnling) {
-            return this.inactiveList.Contains(spawnling);
-        }
+		public bool IsInactive(SpawnClass spawnling) {
+			return this.inactiveList.Contains(spawnling);
+		}
 
-        public int ActiveCount() {
-            return this.activeList.Count;
-        }
+		public int ActiveCount() {
+			return this.activeList.Count;
+		}
 
-        public int InactiveCount() {
-            return this.inactiveList.Count;
-        }
-    }
+		public int InactiveCount() {
+			return this.inactiveList.Count;
+		}
+
+		public SpawnClass GetSpawnling(int index, Transform transform=null, Transform parentObject=null, SpawnConstructor spawnConstructor=null, bool forceIndex=false) {
+			int activeCount = this.ActiveCount();
+
+			if (activeCount > index) {
+				return this.activeList[index];
+			}
+
+			if (!forceIndex) {
+				return this.Spawn(transform, parentObject, spawnConstructor);
+			}
+
+			SpawnClass spawnling = null;
+			for (int i = activeCount; i < activeCount + index; i++) {
+				spawnling = this.Spawn(transform, parentObject, spawnConstructor);
+			}
+			return spawnling;
+		}
+
+		public void SetNextSpawnling(int index) {
+			this.nextSpawnlingIndex = index;
+		}
+
+		public SpawnClass GetNextSpawnling(Transform transform=null, Transform parentObject=null, SpawnConstructor spawnConstructor=null, bool forceIndex=false) {
+			SpawnClass spawnling = this.GetSpawnling(this.nextSpawnlingIndex, transform, parentObject, spawnConstructor, forceIndex);
+			if (spawnling == null) {
+				return null;
+			}
+
+			if (!forceIndex) {
+				this.nextSpawnlingIndex = this.ActiveCount();
+			}
+			else {
+				this.nextSpawnlingIndex++;
+			}
+			return spawnling;
+		}
+	}
 
 	public class CodeSpawner<SpawnClass> : IEnumerable<SpawnClass>, ISpawner<SpawnClass> where SpawnClass : ISpawnable, new() {
 		public bool usePooling = true;
-        private List<SpawnClass> activeList = new List<SpawnClass>();
+		private List<SpawnClass> activeList = new List<SpawnClass>();
 		private List<SpawnClass> inactiveList = new List<SpawnClass>();
 
 		public void Initialize(List<SpawnClass> existingList) {
 			foreach (SpawnClass spawnling in existingList) {
-                this.moveToActiveList(spawnling);
-            }
+				this.moveToActiveList(spawnling);
+			}
 		}
 
 		public SpawnClass Spawn() {
-            SpawnClass spawnling;
+			SpawnClass spawnling;
 
 			if (usePooling && (inactiveList.Count > 0)) {
 				spawnling = inactiveList[inactiveList.Count - 1];
@@ -234,19 +376,19 @@ namespace jmayberry.Spawner {
 				spawnling = new SpawnClass();
 			}
 
-            this.moveToActiveList(spawnling);
-            return spawnling;
+			this.moveToActiveList(spawnling);
+			return spawnling;
 		}
 
 		public void Despawn(SpawnClass spawnling) {
 			activeList.Remove(spawnling);
-            this.moveToInactiveList(spawnling);
-        }
+			this.moveToInactiveList(spawnling);
+		}
 
 		public void DespawnAll() {
 			foreach (SpawnClass spawnling in activeList) {
-                this.moveToInactiveList(spawnling);
-            }
+				this.moveToInactiveList(spawnling);
+			}
 
 			this.activeList = new List<SpawnClass>();
 		}
@@ -260,8 +402,8 @@ namespace jmayberry.Spawner {
 				this.inactiveList.Remove(spawnling);
 			}
 
-            this.moveToActiveList(spawnling);
-            return true;
+			this.moveToActiveList(spawnling);
+			return true;
 		}
 
 		public bool ShouldBeInactive(SpawnClass spawnling) {
@@ -285,38 +427,38 @@ namespace jmayberry.Spawner {
 
 		IEnumerator IEnumerable.GetEnumerator() {
 			return GetEnumerator();
-        }
+		}
 
-        private void moveToActiveList(SpawnClass spawnling) {
-            this.activeList.Add(spawnling);
-            spawnling.OnSpawn(this);
-        }
+		private void moveToActiveList(SpawnClass spawnling) {
+			this.activeList.Add(spawnling);
+			spawnling.OnSpawn(this);
+		}
 
-        private void moveToInactiveList(SpawnClass spawnling) {
-            if (this.usePooling) {
-                spawnling.OnDespawn(this);
-                this.inactiveList.Add(spawnling);
-                return;
-            }
+		private void moveToInactiveList(SpawnClass spawnling) {
+			if (this.usePooling) {
+				spawnling.OnDespawn(this);
+				this.inactiveList.Add(spawnling);
+				return;
+			}
 
-            spawnling.OnDespawn(this);
-            // It will be garbage collected?
-        }
+			spawnling.OnDespawn(this);
+			// It will be garbage collected?
+		}
 
-        public bool IsActive(SpawnClass spawnling) {
-            return this.activeList.Contains(spawnling);
-        }
+		public bool IsActive(SpawnClass spawnling) {
+			return this.activeList.Contains(spawnling);
+		}
 
-        public bool IsInactive(SpawnClass spawnling) {
-            return this.inactiveList.Contains(spawnling);
-        }
+		public bool IsInactive(SpawnClass spawnling) {
+			return this.inactiveList.Contains(spawnling);
+		}
 
-        public int ActiveCount() {
-            return this.activeList.Count;
-        }
+		public int ActiveCount() {
+			return this.activeList.Count;
+		}
 
-        public int InactiveCount() {
-            return this.inactiveList.Count;
-        }
-    }
+		public int InactiveCount() {
+			return this.inactiveList.Count;
+		}
+	}
 }
