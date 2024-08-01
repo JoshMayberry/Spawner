@@ -12,9 +12,9 @@ namespace jmayberry.Spawner {
 		int count { get; set; }
 		SpawnClass[] possible { get; set; }
 		float timeBetweenSpawns { get; set; }
-    }
+	}
 
-    public enum SpawnLocationType { WithinCircle, WithinBox, WithinCollider, FromList, AlongSpline, OnMesh }
+	public enum SpawnLocationType { WithinCircle, WithinBox, WithinCollider, FromList, AlongSpline, OnMesh }
 
 	public abstract class WaveManagerBase<SpawnClass, WaveClass> : MonoBehaviour
 		where SpawnClass : MonoBehaviour, ISpawnable
@@ -23,6 +23,7 @@ namespace jmayberry.Spawner {
 		[Header("Setup")]
 		public WaveClass[] waves;
 		public float timeBetweenWaves;
+		public float timeBetweenPauseChecks = 0.1f;
 		public Transform spawnParent;
 		public bool usePooling = false;
 
@@ -40,19 +41,20 @@ namespace jmayberry.Spawner {
 		[Header("Debug")]
 		[Readonly] public WaveClass currentWave;
 		[Readonly] public int currentWaveIndex;
+		[Readonly] public bool is_paused;
 
 		[Header("GUI")]
 		public UnityEvent<int> EventWaveStart;
 		public UnityEvent<int> EventWaveEnd;
 		public UnityEvent EventWavesOver;
 
-        [Readonly] public bool wavesFinished = false;
+		[Readonly] public bool wavesFinished = false;
 
 		public void Start() {
 			this.spawner = new UnitySpawner<SpawnClass>();
 			this.spawner.usePooling = usePooling;
 
-            if (this.EventWaveStart == null) {
+			if (this.EventWaveStart == null) {
 				this.EventWaveStart = new UnityEvent<int>();
 			}
 
@@ -94,6 +96,11 @@ namespace jmayberry.Spawner {
 
 				if (this.currentWave.count <= 0) {
 					while (true) {
+						if (this.is_paused) {
+							yield return new WaitForSeconds(this.timeBetweenPauseChecks);
+							continue;
+						}
+
 						if (this.wavesFinished) {
 							yield break;
 						}
@@ -107,6 +114,11 @@ namespace jmayberry.Spawner {
 				}
 				else {
 					for (int j = 0; j < this.currentWave.count; j++) {
+						if (this.is_paused) {
+							yield return new WaitForSeconds(this.timeBetweenPauseChecks);
+							continue;
+						}
+
 						if (this.wavesFinished) {
 							yield break;
 						}
@@ -129,7 +141,7 @@ namespace jmayberry.Spawner {
 
 		private bool DoSpawn(int i, int j) {
 			SpawnClass randomPrefab = this.currentWave.possible[UnityEngine.Random.Range(0, this.currentWave.possible.Length)];
-            Vector3 randomSpawnPoint = this.GetSpawnLocation();
+			Vector3 randomSpawnPoint = this.GetSpawnLocation();
 
 			SpawnClass spawnling = this.spawner.Spawn(randomPrefab, randomSpawnPoint, this.spawnParent);
 			return this.OnSpawn(spawnling, this.currentWave, i, j);
@@ -215,7 +227,7 @@ namespace jmayberry.Spawner {
 
 							Debug.LogWarning("Failed to find a valid spawn point within the polygon collider.");
 							return Vector3.zero;
-                        }
+						}
 					}
 
 					throw new Exception("Unknown Collider Type");
@@ -233,7 +245,7 @@ namespace jmayberry.Spawner {
 		public abstract bool OnSpawn(SpawnClass spawnling, WaveClass wave, int waveIndex, int spawnlingIndex);
 
 #if UNITY_EDITOR
-        public virtual void OnDrawGizmosSelected() {
+		public virtual void OnDrawGizmosSelected() {
 			if (!this.enabled) {
 				return;
 			}
@@ -272,5 +284,5 @@ namespace jmayberry.Spawner {
 			}
 		}
 #endif
-    }
+	}
 }
